@@ -16,7 +16,14 @@ public class Spreadsheet implements SpreadsheetInterface {
   }
 
   public void setExpression(CellLocation location, String expression){
-    Cell cell = locationCell.get(location);
+    if(locationCell.containsKey(location)){
+      Cell cell = locationCell.get(location);
+      cell.setCellExpression(expression);
+    } else {  //TODO: Check the spreadSheet bit!!!
+      Spreadsheet spreadSheet = new Spreadsheet();
+      Cell cell = new Cell(location, spreadSheet);
+      cell.setCellExpression(expression);
+    }
 
   }
 

@@ -2,6 +2,7 @@ package spreadsheet;
 
 
 import spreadsheet.api.CellLocation;
+import spreadsheet.api.value.StringValue;
 import spreadsheet.api.value.Value;
 
 public class Cell {
@@ -28,5 +29,7 @@ public class Cell {
 
   public void setCellExpression(String newExpression){
     this.expression = newExpression;
+    StringValue stringValue = new StringValue(expression);
+    this.value = stringValue;
   }
 }
