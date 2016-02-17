@@ -37,6 +37,10 @@ public class Cell implements Observer<Cell> {
     return value;
   }
 
+  public void setCellValue(Value valueNew){
+    this.value = valueNew;
+  }
+
   public void setCellExpression(String newExpression){
     this.expression = newExpression;
     StringValue stringValue = new StringValue(expression);
@@ -60,9 +64,8 @@ public class Cell implements Observer<Cell> {
     }
     observers.clear();
 
-    /*InvalidValue invalidValue = new InvalidValue(expr);
-      setCellExpression(invalidValue);*/
-
+    InvalidValue invalidValue = new InvalidValue(expr);
+    setCellValue(invalidValue);
 
   }
 }
