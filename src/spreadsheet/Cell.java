@@ -2,6 +2,7 @@ package spreadsheet;
 
 
 import spreadsheet.api.CellLocation;
+import spreadsheet.api.ExpressionUtils;
 import spreadsheet.api.observer.Observer;
 import spreadsheet.api.value.InvalidValue;
 import spreadsheet.api.value.StringValue;
@@ -16,7 +17,6 @@ public class Cell implements Observer<Cell> {
   private Spreadsheet spreadSheet;
   private Value value;
   private String expression;
-
   private Set<Observer<Cell>> observers;
   private Set<Cell> referenceExp;
 
@@ -50,22 +50,52 @@ public class Cell implements Observer<Cell> {
   //A cell needed to be updated when the expression is changed
   //Use the helper method -- removeObserver
   public void update(Cell changed){
+    if(! spreadSheet.needToRecompute(changed)){
+      //Value value = spreadSheet.getValue(cellLocation);
 
+      spreadSheet.addToRecompute(this);
 
-  }
+      InvalidValue invalidValue = new InvalidValue(getCellExpression());
+      setCellValue(invalidValue);
 
-  private void removeObserver(Observer<Cell> observer){
-    observers.remove(observer);
+      for(Observer observer : observers){
+        observer.update(changed);
+      }
+    }
   }
 
   public void changeCellExpr(String expr){
-    for(Cell reference : referenceExp){
 
+    //observers.remove(this);
+
+    for(Cell reference : referenceExp){
+      referenceExp.remove(reference);
     }
-    observers.clear();
+    //observers.clear();
 
     InvalidValue invalidValue = new InvalidValue(expr);
     setCellValue(invalidValue);
+    setCellExpression(expr);
+    spreadSheet.addToRecompute(this);
+
+
+    Set<CellLocation> cellLocations = ExpressionUtils.getReferencedLocations(expr);
+
+    for(CellLocation cellLocation : cellLocations) {
+      Cell cell = spreadSheet.getCell(cellLocation);
+      referenceExp.add(cell);
+      cell.observers.add(this);
+
+    }
+
 
   }
+
+
 }
+
+
+ /*private void removeObserver(Observer<Cell> observer){
+    observers.remove(observer);
+  }
+*/

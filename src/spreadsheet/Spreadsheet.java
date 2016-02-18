@@ -2,12 +2,10 @@ package spreadsheet;
 
 import spreadsheet.api.CellLocation;
 import spreadsheet.api.SpreadsheetInterface;
+import spreadsheet.api.value.StringValue;
 import spreadsheet.api.value.Value;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Spreadsheet implements SpreadsheetInterface {
 
@@ -23,10 +21,10 @@ public class Spreadsheet implements SpreadsheetInterface {
     if(locationCell.containsKey(location)){
       Cell cell = locationCell.get(location);
       cell.setCellExpression(expression);
-    } else {  //TODO: Check the spreadSheet bit!!!(Stage 2)
-      Spreadsheet spreadSheet = new Spreadsheet();
-      Cell cell = new Cell(location, spreadSheet);
+    } else {
+      Cell cell = new Cell(location, this);
       cell.setCellExpression(expression);
+      locationCell.put(location, cell);
     }
 
   }
@@ -48,6 +46,14 @@ public class Spreadsheet implements SpreadsheetInterface {
   }
 
   public void recompute(){
+    Iterator iterator = recomputedCell.iterator();
+    while(iterator.hasNext()){
+      Cell cell = (Cell) iterator.next();
+      StringValue strexpr = new StringValue(cell.getCellExpression());
+      cell.setCellValue(strexpr);
+
+      iterator.remove();
+    }
 
   }
 
@@ -55,4 +61,12 @@ public class Spreadsheet implements SpreadsheetInterface {
     return recomputedCell.contains(cell);
   }
 
+  public void addToRecompute(Cell cell){
+    recomputedCell.add(cell);
+  }
+
+  public Cell getCell(CellLocation location){
+    Cell cell = new Cell(location, this);
+    return cell;
+  }
 }

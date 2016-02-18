@@ -15,6 +15,7 @@ public class Main {
       Spreadsheet spreadsheet = new Spreadsheet();
       SpreadsheetGUI spreadsheetGUI
         = new SpreadsheetGUI(spreadsheet, DEFAULT_NUM_ROWS, DEFAULT_NUM_COLUMNS);
+      spreadsheetGUI.start();
     }
 
     else if(args.length == 2){
@@ -23,6 +24,7 @@ public class Main {
       Spreadsheet spreadsheet = new Spreadsheet();
       SpreadsheetGUI spreadsheetGUI
         = new SpreadsheetGUI(spreadsheet,NUM_ROWS, NUM_COLUMNS);
+      spreadsheetGUI.start();
     }
     System.out.println("A spreadSheet is created");
   }
