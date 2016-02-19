@@ -18,7 +18,7 @@ public class Cell implements Observer<Cell> {
   private Value value;
   private String expression;
   private Set<Observer<Cell>> observers;
-  private Set<Cell> referenceExp;
+  protected Set<Cell> referenceExp;
 
   public Cell(CellLocation cellLocation, Spreadsheet spreadSheet){
     this.cellLocation = cellLocation;
@@ -84,10 +84,7 @@ public class Cell implements Observer<Cell> {
       Cell cell = spreadSheet.getCell(cellLocation);
       referenceExp.add(cell);
       cell.observers.add(this);
-
     }
-
-
   }
 
 

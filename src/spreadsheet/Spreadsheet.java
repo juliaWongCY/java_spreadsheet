@@ -2,6 +2,7 @@ package spreadsheet;
 
 import spreadsheet.api.CellLocation;
 import spreadsheet.api.SpreadsheetInterface;
+import spreadsheet.api.value.LoopValue;
 import spreadsheet.api.value.StringValue;
 import spreadsheet.api.value.Value;
 
@@ -11,6 +12,7 @@ public class Spreadsheet implements SpreadsheetInterface {
 
   private Map<CellLocation, Cell>locationCell;
   private Set<Cell> recomputedCell;
+
 
   public Spreadsheet(){
     locationCell = new HashMap<>();
@@ -45,6 +47,7 @@ public class Spreadsheet implements SpreadsheetInterface {
     return null;
   }
 
+  @Override
   public void recompute(){
     Iterator iterator = recomputedCell.iterator();
     while(iterator.hasNext()){
@@ -53,6 +56,45 @@ public class Spreadsheet implements SpreadsheetInterface {
       cell.setCellValue(stringValue);
 
       iterator.remove();
+
+      recomputeCell(cell);
+    }
+
+
+  }
+
+  private void recomputeCell(Cell c){
+    StringValue stringValue = new StringValue(c.getCellExpression());
+    c.setCellValue(stringValue);
+    recomputedCell.remove(c);
+
+    LinkedHashSet<Cell> cellsSeen = new LinkedHashSet<>();
+    checkLoops(c, cellsSeen);
+
+  }
+
+  private void checkLoops(Cell c, LinkedHashSet<Cell> cellsSeen){
+    if(cellsSeen.contains(c)) {
+      markAsLoop(c, cellsSeen);
+    } else {
+      cellsSeen.add(c);
+
+      for(Cell cell : c.referenceExp){
+         checkLoops(cell, cellsSeen);
+      }
+      cellsSeen.remove(c);
+    }
+
+  }
+
+  private void markAsLoop(Cell startCell, LinkedHashSet<Cell> cells){
+    //Iterator iterator = cells.iterator();
+
+    recompute();
+    LoopValue loopValue = LoopValue.INSTANCE;
+    for(Cell cellRef : cells){
+      cellRef.setCellValue(loopValue);
+
     }
 
   }
@@ -70,3 +112,10 @@ public class Spreadsheet implements SpreadsheetInterface {
     return cell;
   }
 }
+
+
+
+/*Iterator iterator = cellsSeen.iterator();
+      if (iterator.hasNext()) {
+
+      }*/
