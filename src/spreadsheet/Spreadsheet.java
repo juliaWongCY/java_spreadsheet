@@ -49,8 +49,8 @@ public class Spreadsheet implements SpreadsheetInterface {
     Iterator iterator = recomputedCell.iterator();
     while(iterator.hasNext()){
       Cell cell = (Cell) iterator.next();
-      StringValue strexpr = new StringValue(cell.getCellExpression());
-      cell.setCellValue(strexpr);
+      StringValue stringValue = new StringValue(cell.getCellExpression());
+      cell.setCellValue(stringValue);
 
       iterator.remove();
     }

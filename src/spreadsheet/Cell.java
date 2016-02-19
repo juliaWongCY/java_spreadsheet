@@ -45,39 +45,38 @@ public class Cell implements Observer<Cell> {
     this.expression = newExpression;
     StringValue stringValue = new StringValue(expression);
     this.value = stringValue;
+
+    changeCellExpr(newExpression);
+
   }
 
-  //A cell needed to be updated when the expression is changed
-  //Use the helper method -- removeObserver
+  @Override
   public void update(Cell changed){
-    if(! spreadSheet.needToRecompute(changed)){
+    if(!spreadSheet.needToRecompute(changed)){
       //Value value = spreadSheet.getValue(cellLocation);
 
       spreadSheet.addToRecompute(this);
 
       InvalidValue invalidValue = new InvalidValue(getCellExpression());
-      setCellValue(invalidValue);
+      changed.setCellValue(invalidValue);
 
       for(Observer observer : observers){
-        observer.update(changed);
+        update((Cell) observer);
       }
     }
   }
 
   public void changeCellExpr(String expr){
 
-    //observers.remove(this);
-
     for(Cell reference : referenceExp){
       referenceExp.remove(reference);
     }
-    //observers.clear();
+    referenceExp.clear();
 
+   this.expression = expr;
     InvalidValue invalidValue = new InvalidValue(expr);
     setCellValue(invalidValue);
-    setCellExpression(expr);
     spreadSheet.addToRecompute(this);
-
 
     Set<CellLocation> cellLocations = ExpressionUtils.getReferencedLocations(expr);
 
