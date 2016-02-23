@@ -17,6 +17,20 @@ public class TestSetExpression {
     private final CellLocation d1 = new CellLocation("d1");
 
     @Test
+    public void Loop() {
+      Spreadsheet spreadsheet = new Spreadsheet();
+
+        spreadsheet.setExpression(a1, "=a2");
+        spreadsheet.setExpression(a2, "=a1");
+
+        spreadsheet.recompute();
+
+        assertIsLoopValue(spreadsheet.getValue(a1));
+        assertIsLoopValue(spreadsheet.getValue(a2));
+
+    }
+
+    @Test
     public void testSetExpression1() {
         Spreadsheet spreadsheet = new Spreadsheet();
 

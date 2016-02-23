@@ -37,6 +37,10 @@ public class Cell implements Observer<Cell> {
     return value;
   }
 
+  public CellLocation getCellLoc(){
+    return cellLocation;
+  }
+
   public void setCellValue(Value valueNew){
     this.value = valueNew;
   }

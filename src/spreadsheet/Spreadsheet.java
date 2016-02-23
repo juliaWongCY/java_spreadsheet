@@ -89,13 +89,14 @@ public class Spreadsheet implements SpreadsheetInterface {
       for(Cell cell : c.referenceExp) {
         checkLoops(cell, cellsSeen);
         cellsSeen.remove(c);
-      
+
       }
     }
 
   }
 
   private void markAsLoop(Cell startCell, LinkedHashSet<Cell> cells){
+    System.out.println("this is called");
     LoopValue loopValue = LoopValue.INSTANCE;
 
     boolean startSeen = false;
@@ -105,7 +106,8 @@ public class Spreadsheet implements SpreadsheetInterface {
         cell.setCellValue(loopValue);
         startSeen = true;
       } else {
-        InvalidValue invalidValue = new InvalidValue(cell.getCellExpression());
+        InvalidValue invalidValue
+          = new InvalidValue(cell.getCellExpression());
         cell.setCellValue(invalidValue);
       }
       recomputedCell.remove(cell);
