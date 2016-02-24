@@ -1,22 +1,22 @@
 package spreadsheet;
 
 import spreadsheet.api.CellLocation;
+import spreadsheet.api.ExpressionUtils;
 import spreadsheet.api.SpreadsheetInterface;
-import spreadsheet.api.value.InvalidValue;
-import spreadsheet.api.value.LoopValue;
-import spreadsheet.api.value.StringValue;
-import spreadsheet.api.value.Value;
+import spreadsheet.api.value.*;
 
 import java.util.*;
 
 public class Spreadsheet implements SpreadsheetInterface {
 
   private Map<CellLocation, Cell>locationCell;
+  //private Deque<Cell> recomputedCell;
   private Set<Cell> recomputedCell;
 
 
   public Spreadsheet(){
     locationCell = new HashMap<>();
+    //recomputedCell = new ArrayDeque<>();
     recomputedCell = new HashSet<>();
   }
 
@@ -55,45 +55,62 @@ public class Spreadsheet implements SpreadsheetInterface {
   public void recompute(){
 
     while(!recomputedCell.isEmpty()){
+      //Cell cell = recomputedCell.peekFirst();
       Iterator iterator = recomputedCell.iterator();
       Cell cell = (Cell) iterator.next();
       recomputeCell(cell);
+      //recomputedCell.removeFirst();
 
       recomputedCell.remove(cell);
     }
-    //iterator.remove();
   }
 
   private void recomputeCell(Cell c){
     LinkedHashSet<Cell> cellsSeen = new LinkedHashSet<>();
+    Deque<Cell> queue = new ArrayDeque<>();
 
     if(needToRecompute(c)) {
       StringValue stringValue = new StringValue(c.getCellExpression());
       c.setCellValue(stringValue);
     }
     checkLoops(c, cellsSeen);
+
+    //boolean dependRecompute = false;
+    while(!queue.isEmpty()){
+      Cell currentCell = queue.getFirst();
+
+      for(Cell reCompute : recomputedCell){
+        if(dependentRecompute(currentCell)){
+          queue.addLast(currentCell);
+        } else {
+          calculateCellValue(currentCell);
+          recomputedCell.remove(currentCell);
+        }
+      }
+
+
+
+
+    }
   }
 
   private void checkLoops(Cell c, LinkedHashSet<Cell> cellsSeen){
-    System.out.println("check loop is called");
+    //System.out.println("check loop is called");
 
     if(cellsSeen.contains(c)) {
       markAsLoop(c, cellsSeen);
     } else {
       cellsSeen.add(c);
 
-
       for(Cell cell : c.referenceExp) {
         //System.out.println("Current Reference: " + cell.getCellLoc());
         checkLoops(cell, cellsSeen);
-
       }
     }
-
   }
 
   private void markAsLoop(Cell startCell, LinkedHashSet<Cell> cells){
-    System.out.println("markAsLoop is called");
+    //System.out.println("markAsLoop is called");
     LoopValue loopValue = LoopValue.INSTANCE;
 
     boolean startSeen = false;
@@ -109,16 +126,36 @@ public class Spreadsheet implements SpreadsheetInterface {
       }
       recomputedCell.remove(cell);
     }
-    //Iterator iterator = cells.iterator();
+  }
 
-    /*recompute();
-    for(Cell cellRef : cells){
-      cellRef.setCellValue(loopValue);
+  private void calculateCellValue(Cell cell){
+    Map<CellLocation, Double> dependents = new HashMap<>();
+    Value value
+      = ExpressionUtils.computeValue(cell.getCellExpression(), dependents);
+    new ValueVisitor() {
 
-    }
+      @Override
+      public void visitDouble(double value){
 
-    */
+      }
 
+      @Override
+      public void visitLoop(){
+
+      }
+
+      @Override
+      public void visitString(String expression){
+
+      }
+
+      @Override
+      public void visitInvalid(String expression){
+
+      }
+    };
+    cell.setCellValue(value);
+    recomputedCell.remove(cell);
   }
 
   public boolean needToRecompute(Cell cell){
@@ -128,6 +165,22 @@ public class Spreadsheet implements SpreadsheetInterface {
   public void addToRecompute(Cell cell){
     recomputedCell.add(cell);
   }
+
+  private boolean dependentRecompute(Cell cell){
+    LoopValue loopValue = LoopValue.INSTANCE;
+    return needToRecompute(cell) && cell.getCellValue() == loopValue;
+  }
+
+ /* private boolean dependRecompute(){
+    LinkedHashSet<Cell> cellsSeen = new LinkedHashSet<>();
+    for(Cell cell : cellsSeen){
+      if(needToRecompute(cell)){
+        return true;
+      }
+    }
+    return false;
+  }
+  */
 
   public Cell getCell(CellLocation location){
     if(locationCell.containsKey(location)) {
