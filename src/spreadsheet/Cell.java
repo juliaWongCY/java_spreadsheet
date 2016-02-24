@@ -82,12 +82,17 @@ public class Cell implements Observer<Cell> {
     setCellValue(invalidValue);
     spreadSheet.addToRecompute(this);
 
-    Set<CellLocation> cellLocations = ExpressionUtils.getReferencedLocations(expr);
+    Set<CellLocation> cellLocations
+      = ExpressionUtils.getReferencedLocations(expr);
 
     for(CellLocation cellLocation : cellLocations) {
       Cell cell = spreadSheet.getCell(cellLocation);
       referenceExp.add(cell);
       cell.observers.add(this);
+    }
+
+    for(Observer<Cell> obs : observers){
+      obs.update(this);
     }
   }
 

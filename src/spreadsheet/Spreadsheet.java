@@ -17,7 +17,7 @@ public class Spreadsheet implements SpreadsheetInterface {
 
   public Spreadsheet(){
     locationCell = new HashMap<>();
-    this.recomputedCell = new HashSet<>();
+    recomputedCell = new HashSet<>();
   }
 
   @Override
@@ -53,17 +53,15 @@ public class Spreadsheet implements SpreadsheetInterface {
 
   @Override
   public void recompute(){
-    Iterator iterator = recomputedCell.iterator();
-    while(iterator.hasNext()){
+
+    while(!recomputedCell.isEmpty()){
+      Iterator iterator = recomputedCell.iterator();
       Cell cell = (Cell) iterator.next();
       recomputeCell(cell);
-      //StringValue stringValue = new StringValue(cell.getCellExpression());
-      //cell.setCellValue(stringValue);
 
-      iterator.remove();
-
+      recomputedCell.remove(cell);
     }
-    recomputedCell.clear();
+    //iterator.remove();
   }
 
   private void recomputeCell(Cell c){
@@ -73,12 +71,11 @@ public class Spreadsheet implements SpreadsheetInterface {
       StringValue stringValue = new StringValue(c.getCellExpression());
       c.setCellValue(stringValue);
     }
-    //cellsSeen.add(c);
     checkLoops(c, cellsSeen);
-
   }
 
   private void checkLoops(Cell c, LinkedHashSet<Cell> cellsSeen){
+    System.out.println("check loop is called");
 
     if(cellsSeen.contains(c)) {
       markAsLoop(c, cellsSeen);
@@ -87,8 +84,8 @@ public class Spreadsheet implements SpreadsheetInterface {
 
 
       for(Cell cell : c.referenceExp) {
+        //System.out.println("Current Reference: " + cell.getCellLoc());
         checkLoops(cell, cellsSeen);
-        cellsSeen.remove(c);
 
       }
     }
@@ -96,7 +93,7 @@ public class Spreadsheet implements SpreadsheetInterface {
   }
 
   private void markAsLoop(Cell startCell, LinkedHashSet<Cell> cells){
-    System.out.println("this is called");
+    System.out.println("markAsLoop is called");
     LoopValue loopValue = LoopValue.INSTANCE;
 
     boolean startSeen = false;
@@ -133,8 +130,13 @@ public class Spreadsheet implements SpreadsheetInterface {
   }
 
   public Cell getCell(CellLocation location){
-    Cell cell = new Cell(location, this);
-    return cell;
+    if(locationCell.containsKey(location)) {
+      return locationCell.get(location);
+    } else {
+      Cell cell = new Cell(location, this);
+      locationCell.put(location, cell);
+      return cell;
+    }
   }
 }
 
