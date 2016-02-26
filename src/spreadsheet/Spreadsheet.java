@@ -10,14 +10,15 @@ import java.util.*;
 public class Spreadsheet implements SpreadsheetInterface {
 
   private Map<CellLocation, Cell>locationCell;
-  //private Deque<Cell> recomputedCell;
-  private Set<Cell> recomputedCell;
+  private Deque<Cell> recomputedCell;
+  private Deque<Cell> queue = new ArrayDeque<>();
+  //private Set<Cell> recomputedCell;
 
 
   public Spreadsheet(){
     locationCell = new HashMap<>();
-    //recomputedCell = new ArrayDeque<>();
-    recomputedCell = new HashSet<>();
+    recomputedCell = new ArrayDeque<>();
+    //recomputedCell = new HashSet<>();
   }
 
   @Override
@@ -55,9 +56,9 @@ public class Spreadsheet implements SpreadsheetInterface {
   public void recompute(){
 
     while(!recomputedCell.isEmpty()){
-      //Cell cell = recomputedCell.peekFirst();
-      Iterator iterator = recomputedCell.iterator();
-      Cell cell = (Cell) iterator.next();
+      Cell cell = recomputedCell.removeFirst();
+      //Iterator iterator = recomputedCell.iterator();
+      //Cell cell = (Cell) iterator.next();
       recomputeCell(cell);
       //recomputedCell.removeFirst();
 
@@ -67,31 +68,75 @@ public class Spreadsheet implements SpreadsheetInterface {
 
   private void recomputeCell(Cell c){
     LinkedHashSet<Cell> cellsSeen = new LinkedHashSet<>();
-    Deque<Cell> queue = new ArrayDeque<>();
 
-    if(needToRecompute(c)) {
+    /*if(needToRecompute(c)) {
       StringValue stringValue = new StringValue(c.getCellExpression());
       c.setCellValue(stringValue);
     }
+    */
+
     checkLoops(c, cellsSeen);
 
-    //boolean dependRecompute = false;
+    queue.add(c);
+
+    Set<Cell> referencesDepend = c.getReference();
+   if(!recomputedCell.isEmpty()){
     while(!queue.isEmpty()){
       Cell currentCell = queue.getFirst();
 
-      for(Cell reCompute : recomputedCell){
-        if(dependentRecompute(currentCell)){
+      if(!referencesDepend.isEmpty()){
+        for(Cell ref : referencesDepend){
+          if(needToRecompute(ref)){
+            queue.addFirst(ref);
+          }
           queue.addLast(currentCell);
-        } else {
+
+          if(!needToRecompute(ref)) {
+          calculateCellValue(currentCell);
+          referencesDepend.remove(currentCell);
+          queue.remove(currentCell);
+          }
+        //  recomputedCell.remove();
+        }
+
+      }
+    }
+
+
+      /*for(Cell refCell : c.referenceExp){
+        if(needToRecompute(refCell)){
+          queue.addFirst(refCell);
+          queue.addLast(currentCell);
+
+        }
+        if(!needToRecompute(refCell)){
+          calculateCellValue(currentCell);
+          queue.remove(currentCell);
+        }
+
+      }
+*/
+
+     /* for(Cell reCompute : recomputedCell){
+        if(needToRecompute(reCompute)){
+          queue.addFirst(reCompute);
+        }
+        queue.addLast(currentCell);
+        queue.remove();
+
+        if(!needToRecompute(reCompute)) {
           calculateCellValue(currentCell);
           recomputedCell.remove(currentCell);
         }
       }
+      */
+
 
 
 
 
     }
+
   }
 
   private void checkLoops(Cell c, LinkedHashSet<Cell> cellsSeen){
@@ -130,9 +175,9 @@ public class Spreadsheet implements SpreadsheetInterface {
 
   private void calculateCellValue(Cell cell){
     Map<CellLocation, Double> dependents = new HashMap<>();
-    Value value
-      = ExpressionUtils.computeValue(cell.getCellExpression(), dependents);
-    new ValueVisitor() {
+
+    for(Cell depend : cell.referenceExp){
+      depend.getCellValue().visit(new ValueVisitor() {
 
       @Override
       public void visitDouble(double value){
@@ -153,9 +198,13 @@ public class Spreadsheet implements SpreadsheetInterface {
       public void visitInvalid(String expression){
 
       }
-    };
+    });
+    Value value
+      = ExpressionUtils.computeValue(cell.getCellExpression(), dependents);
+
     cell.setCellValue(value);
     recomputedCell.remove(cell);
+    }
   }
 
   public boolean needToRecompute(Cell cell){
@@ -166,21 +215,25 @@ public class Spreadsheet implements SpreadsheetInterface {
     recomputedCell.add(cell);
   }
 
-  private boolean dependentRecompute(Cell cell){
+ /* private boolean dependentRecompute(Cell cell){
     LoopValue loopValue = LoopValue.INSTANCE;
     return needToRecompute(cell) && cell.getCellValue() == loopValue;
   }
 
- /* private boolean dependRecompute(){
+
+
+  private Cell getReference(){
     LinkedHashSet<Cell> cellsSeen = new LinkedHashSet<>();
     for(Cell cell : cellsSeen){
       if(needToRecompute(cell)){
-        return true;
+        return cell;
       }
     }
-    return false;
+    return null;
   }
-  */
+    */
+
+
 
   public Cell getCell(CellLocation location){
     if(locationCell.containsKey(location)) {
@@ -191,11 +244,18 @@ public class Spreadsheet implements SpreadsheetInterface {
       return cell;
     }
   }
+
+ /* private LinkedHashSet<Cell> getRefereceCell(Cell cell){
+    Set<CellLocation> refCells
+      = ExpressionUtils.getReferencedLocations(cell.getCellExpression());
+    LinkedHashSet<Cell> references = new LinkedHashSet<>();
+
+    for(CellLocation cellLoc : refCells){
+      references.add(getCell(cellLoc));
+    }
+    return references;
+  }
+  */
 }
 
 
-
-/*Iterator iterator = cellsSeen.iterator();
-      if (iterator.hasNext()) {
-
-      }*/

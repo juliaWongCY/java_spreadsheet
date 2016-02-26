@@ -29,6 +29,10 @@ public class Cell implements Observer<Cell> {
     this.referenceExp = new HashSet<>();
   }
 
+  public Set<Cell> getReference() {
+    return referenceExp;
+  }
+
   public String getCellExpression() {
     return expression;
   }
@@ -95,6 +99,8 @@ public class Cell implements Observer<Cell> {
       obs.update(this);
     }
   }
+
+
 
 
 }
